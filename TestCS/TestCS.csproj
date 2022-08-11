@@ -7,4 +7,34 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Images\BishopBlack.png" />
+    <None Remove="Images\BishopWhite.png" />
+    <None Remove="Images\KingBlack.png" />
+    <None Remove="Images\KingWhite.png" />
+    <None Remove="Images\KnightBlack.png" />
+    <None Remove="Images\KnightWhite.png" />
+    <None Remove="Images\PawnBlack.png" />
+    <None Remove="Images\PawnWhite.png" />
+    <None Remove="Images\QueenBlack.png" />
+    <None Remove="Images\QueenWhite.png" />
+    <None Remove="Images\RookBlack.png" />
+    <None Remove="Images\RookWhite.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\BishopBlack.png" />
+    <Resource Include="Images\BishopWhite.png" />
+    <Resource Include="Images\KingBlack.png" />
+    <Resource Include="Images\KingWhite.png" />
+    <Resource Include="Images\KnightBlack.png" />
+    <Resource Include="Images\KnightWhite.png" />
+    <Resource Include="Images\PawnBlack.png" />
+    <Resource Include="Images\PawnWhite.png" />
+    <Resource Include="Images\QueenBlack.png" />
+    <Resource Include="Images\QueenWhite.png" />
+    <Resource Include="Images\RookBlack.png" />
+    <Resource Include="Images\RookWhite.png" />
+  </ItemGroup>
+
 </Project>

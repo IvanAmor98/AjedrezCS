@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-
+using System.Windows.Media.Imaging;
 using TestCS;
 
 namespace Pieces
@@ -93,16 +93,24 @@ namespace Pieces
         public Type Type { get; set; }
         public Color Color { get; set; }
         public Coordinates Coords { get; set; } = new(0, 0);
-        public bool HorizontalMove { get; set; }
-        public bool DiagonalMove { get; set; }
-        public bool KnightMove { get; set; }
+        public bool HorizontalMove { get; set; } = false;
+        public bool DiagonalMove { get; set; } = false;
+        public bool KnightMove { get; set; } = false; 
+        public bool PawnMove { get; set; } = false;
         public int Range { get; set; }
-        public bool IsFirtMove { get; set; } = true;
+        public bool IsFirstMove { get; set; } = true;
+        public Image Image { get; } = new Image();
 
         public Piece(Coordinates coords, Color color)
         {
             this.Coords = coords;
             this.Color = color;
+        }
+
+        protected void SetImage()
+        {
+            String uri = @$"Images/{this.Type}{this.Color}.png";
+            this.Image.Source = new BitmapImage(new Uri(uri, UriKind.Relative));
         }
 
         public List<Coordinates> GetValidMoves()
@@ -111,6 +119,7 @@ namespace Pieces
             result.AddRange(GetHorizontalMoves());
             result.AddRange(GetDiagonalMoves());
             result.AddRange(GetKnightMoves());
+            result.AddRange(GetPawnMoves());
             return result;
         }
 
@@ -127,7 +136,7 @@ namespace Pieces
             return result;
         }
 
-        public  List<Coordinates> GetDiagonalMoves()
+        public List<Coordinates> GetDiagonalMoves()
         {
             List<Coordinates> result = new();
             if (!DiagonalMove) return result;
@@ -157,27 +166,53 @@ namespace Pieces
             return result;
         }
 
-        public void CheckStep(List<Coordinates> result, Coordinates step)
+        public List<Coordinates> GetPawnMoves()
         {
-            bool isObstructed = false;
-            for (int i = 1; i <= this.Range && !isObstructed; i++)
+            List<Coordinates> result = new();
+            if (!PawnMove) return result;
+
+            if (IsFirstMove) this.Range++;
+            if (Color == Color.White)
+            {
+                CheckStep(result, Coordinates.DOWN);
+                if (IsFirstMove) this.Range--;
+                CheckStep(result, Coordinates.DOWNLEFT, true);
+                CheckStep(result, Coordinates.DOWNRIGHT, true);
+            } else
+            {
+                CheckStep(result, Coordinates.UP);
+                if (IsFirstMove) this.Range--;
+                CheckStep(result, Coordinates.UPLEFT, true);
+                CheckStep(result, Coordinates.UPRIGHT, true);
+            }
+
+
+            return result;
+        }
+
+        public void CheckStep(List<Coordinates> result, Coordinates step, bool needsEnemy = false)
+        {
+            for (int i = 1; i <= this.Range; i++)
             {
                 Coordinates move = this.Coords + (step * i);
-                if (!move.IsValid()) return;
-                if (IsObstructed(move))
-                {
-                    isObstructed = true;
-                    return;
-                }
-                 result.Add(move);
+                if (!move.IsValid() || IsObstructed(move)) return;
+                if ((needsEnemy && HasEnemy(move)) || !needsEnemy) result.Add(move);
+                if (HasEnemy(move)) return;
             }
         }
 
         public bool IsObstructed(Coordinates space)
         {
             if (BoardNS.Board.PieceGrid[space.X, space.Y] == 0) return false;
-            if (BoardNS.Board.PieceList.Find(piece => piece.Coords == space)?.Color != Color) return false;
+            if (HasEnemy(space)) return false;
             return true;
+        }
+
+        public bool HasEnemy(Coordinates space)
+        {
+            Piece? enemy = BoardNS.Board.PieceList.Find(piece => piece.Coords == space);
+            if (enemy != null && enemy.Color != Color) return true;
+            return false;
         }
 
     }
@@ -189,8 +224,8 @@ namespace Pieces
             this.Type = Type.King;
             this.HorizontalMove = true;
             this.DiagonalMove = true;
-            this.KnightMove = false;
             this.Range = 1;
+            this.SetImage();
         }
     }
 
@@ -201,8 +236,8 @@ namespace Pieces
             this.Type = Type.Queen;
             this.HorizontalMove = true;
             this.DiagonalMove = true;
-            this.KnightMove = false;
             this.Range = 7;
+            this.SetImage();
         }
     }
 
@@ -211,10 +246,9 @@ namespace Pieces
         public Knight(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Knight;
-            this.HorizontalMove = false;
-            this.DiagonalMove = false;
             this.KnightMove = true;
             this.Range = 1;
+            this.SetImage();
         }
     }
 
@@ -223,10 +257,9 @@ namespace Pieces
         public Bishop(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Bishop;
-            this.HorizontalMove = false;
             this.DiagonalMove = true;
-            this.KnightMove = false;
             this.Range = 7;
+            this.SetImage();
         }
     }
 
@@ -236,9 +269,8 @@ namespace Pieces
         {
             this.Type = Type.Rook;
             this.HorizontalMove = true;
-            this.DiagonalMove = false;
-            this.KnightMove = false;
             this.Range = 7;
+            this.SetImage();
         }
     }
 
@@ -247,10 +279,9 @@ namespace Pieces
         public Pawn(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Pawn;
-            this.HorizontalMove = true;
-            this.DiagonalMove = true;
-            this.KnightMove = false;
+            this.PawnMove = true;
             this.Range = 1;
+            this.SetImage();
         }
     }
 }
