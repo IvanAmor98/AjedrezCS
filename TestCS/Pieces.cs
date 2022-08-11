@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
+using TestCS;
+
 namespace Pieces
 {
 
@@ -14,6 +16,8 @@ namespace Pieces
         public static Coordinates operator - (Coordinates a, Coordinates b) => new(a.X - b.X, a.Y - b.Y);
         public static Coordinates operator * (Coordinates a, Coordinates b) => new(a.X * b.X, a.Y * b.Y);
         public static Coordinates operator * (Coordinates a, int b) => new(a.X * b, a.Y * b);
+        public static bool operator == (Coordinates a, Coordinates b) => a.X == b.X && a.Y == b.Y;
+        public static bool operator != (Coordinates a, Coordinates b) => a.X != b.X || a.Y != b.Y;
 
         public readonly static Coordinates UP = new(0, 1);
         public readonly static Coordinates DOWN = new(0, -1);
@@ -46,6 +50,26 @@ namespace Pieces
         {
             return X > -1 && X < 8 && Y > -1 && Y < 8;  
         }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(obj, null))
+            {
+                return false;
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public enum Type
@@ -64,11 +88,10 @@ namespace Pieces
         Black
     }
 
-    abstract class Piece
+    public abstract class Piece
     {
-        public int[,] Grid { get; set; }
         public Type Type { get; set; }
-        public Color Color { get; set; } //0 white, 1 black
+        public Color Color { get; set; }
         public Coordinates Coords { get; set; } = new(0, 0);
         public bool HorizontalMove { get; set; }
         public bool DiagonalMove { get; set; }
@@ -76,9 +99,8 @@ namespace Pieces
         public int Range { get; set; }
         public bool IsFirtMove { get; set; } = true;
 
-        public Piece(int[,] grid, Coordinates coords, Color color)
+        public Piece(Coordinates coords, Color color)
         {
-            this.Grid = grid;
             this.Coords = coords;
             this.Color = color;
         }
@@ -153,15 +175,16 @@ namespace Pieces
 
         public bool IsObstructed(Coordinates space)
         {
-            if (Grid[space.X, space.Y] != 0) return true; 
-            return false;
+            if (BoardNS.Board.PieceGrid[space.X, space.Y] == 0) return false;
+            if (BoardNS.Board.PieceList.Find(piece => piece.Coords == space)?.Color != Color) return false;
+            return true;
         }
 
     }
 
     class King : Piece
     {
-        public King(int[,] grid, Coordinates coords, Color color) : base(grid, coords, color)
+        public King(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.King;
             this.HorizontalMove = true;
@@ -173,7 +196,7 @@ namespace Pieces
 
     class Queen : Piece
     {
-        public Queen(int[,] grid, Coordinates coords, Color color) : base(grid, coords, color)
+        public Queen(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Queen;
             this.HorizontalMove = true;
@@ -185,7 +208,7 @@ namespace Pieces
 
     class Knight : Piece
     {
-        public Knight(int[,] grid, Coordinates coords, Color color) : base(grid, coords, color)
+        public Knight(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Knight;
             this.HorizontalMove = false;
@@ -197,7 +220,7 @@ namespace Pieces
 
     class Bishop : Piece
     {
-        public Bishop(int[,] grid, Coordinates coords, Color color) : base(grid, coords, color)
+        public Bishop(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Bishop;
             this.HorizontalMove = false;
@@ -209,7 +232,7 @@ namespace Pieces
 
     class Rook : Piece
     {
-        public Rook(int[,] grid, Coordinates coords, Color color) : base(grid, coords, color)
+        public Rook(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Rook;
             this.HorizontalMove = true;
@@ -221,7 +244,7 @@ namespace Pieces
 
     class Pawn : Piece
     {
-        public Pawn(int[,] grid, Coordinates coords, Color color) : base(grid, coords, color)
+        public Pawn(Coordinates coords, Color color) : base(coords, color)
         {
             this.Type = Type.Pawn;
             this.HorizontalMove = true;
