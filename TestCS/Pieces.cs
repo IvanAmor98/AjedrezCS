@@ -109,8 +109,7 @@ namespace Pieces
 
         protected void SetImage()
         {
-            String uri = @$"Images/{this.Type}{this.Color}.png";
-            this.Image.Source = new BitmapImage(new Uri(uri, UriKind.Relative));
+            this.Image.Source = new BitmapImage(new Uri(@$"Images/{this.Type}{this.Color}.png", UriKind.Relative));
         }
 
         public List<Coordinates> GetValidMoves()
@@ -174,29 +173,29 @@ namespace Pieces
             if (IsFirstMove) this.Range++;
             if (Color == Color.White)
             {
-                CheckStep(result, Coordinates.DOWN);
+                CheckStep(result, Coordinates.DOWN, false);
                 if (IsFirstMove) this.Range--;
-                CheckStep(result, Coordinates.DOWNLEFT, true);
-                CheckStep(result, Coordinates.DOWNRIGHT, true);
+                CheckStep(result, Coordinates.DOWNLEFT, true, true);
+                CheckStep(result, Coordinates.DOWNRIGHT, true, true);
             } else
             {
-                CheckStep(result, Coordinates.UP);
+                CheckStep(result, Coordinates.UP, false);
                 if (IsFirstMove) this.Range--;
-                CheckStep(result, Coordinates.UPLEFT, true);
-                CheckStep(result, Coordinates.UPRIGHT, true);
+                CheckStep(result, Coordinates.UPLEFT, true, true);
+                CheckStep(result, Coordinates.UPRIGHT, true, true);
             }
 
 
             return result;
         }
 
-        public void CheckStep(List<Coordinates> result, Coordinates step, bool needsEnemy = false)
+        public void CheckStep(List<Coordinates> result, Coordinates step, bool canEat = true, bool needsEnemy = false)
         {
             for (int i = 1; i <= this.Range; i++)
             {
                 Coordinates move = this.Coords + (step * i);
                 if (!move.IsValid() || IsObstructed(move)) return;
-                if ((needsEnemy && HasEnemy(move)) || !needsEnemy) result.Add(move);
+                if ((needsEnemy && HasEnemy(move)) || (!needsEnemy && HasEnemy(move) && canEat) || (!needsEnemy && !HasEnemy(move))) result.Add(move);
                 if (HasEnemy(move)) return;
             }
         }

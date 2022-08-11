@@ -165,7 +165,33 @@ namespace TestCS
             Board.PieceGrid[target.Coords.X, target.Coords.Y] = 1;
 
             Turn = Turn == Color.White ? Color.Black : Color.White;
+            CheckPawnPromotion(piece, target);
             CheckMate();
+        }
+
+        void CheckPawnPromotion(Piece piece, TableButton target)
+        {
+            if (!(piece.Type == Pieces.Type.Pawn && (target.Coords.Y == 7 || target.Coords.Y == 0))) return;
+            Board.PieceList.Remove(piece);
+            switch(new Window1().ShowCustomDialog())
+            {
+                case Pieces.Type.Queen:
+                    piece = new Queen(piece.Coords, piece.Color);
+                    break;
+                case Pieces.Type.Bishop:
+                    piece = new Bishop(piece.Coords, piece.Color);
+                    break;
+                case Pieces.Type.Knight:
+                    piece = new Knight(piece.Coords, piece.Color);
+                    break;
+                case Pieces.Type.Rook:
+                    piece = new Rook(piece.Coords, piece.Color);
+                    break;
+            }
+            Board.PieceList.Add(piece);
+
+            ((StackPanel)target.Content).Children.RemoveAt(0);
+            ((StackPanel)target.Content).Children.Add(piece.Image);
         }
 
         void CheckMate()
