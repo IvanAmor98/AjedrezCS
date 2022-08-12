@@ -11,7 +11,7 @@ namespace BoardNS
 	public static class Board
 	{
         public static List<Piece> PieceList { get; } = new List<Piece>();
-        public static int[,] PieceGrid { get; } = new int[8, 8];
+        public static int[,] PieceGrid { get; set; } = new int[8, 8];
 
         public static void InitializeGrid()
         {

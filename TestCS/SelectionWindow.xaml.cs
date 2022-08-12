@@ -17,12 +17,12 @@ namespace TestCS
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class Window1 : Window
+    public partial class SelectionWindow : Window
     {
         private Pieces.Type SelectedType { get; set; }
         private bool CanClose { get; set; } = false;
 
-        public Window1()
+        public SelectionWindow()
         {
             InitializeComponent();
             
@@ -30,34 +30,36 @@ namespace TestCS
 
         public Pieces.Type ShowCustomDialog()
         {
-            this.ShowDialog();
+            ShowDialog();
             return SelectedType;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            switch(Grid.GetColumn((Button)sender))
+            switch (Grid.GetColumn((Button)sender))
             {
                 case 0:
-                    this.SelectedType = Pieces.Type.Queen;
+                    SelectedType = Pieces.Type.Queen;
                     break;
                 case 1:
-                    this.SelectedType = Pieces.Type.Bishop;
+                    SelectedType = Pieces.Type.Bishop;
                     break;
                 case 2:
-                    this.SelectedType = Pieces.Type.Knight;
+                    SelectedType = Pieces.Type.Knight;
                     break;
                 case 3:
-                    this.SelectedType = Pieces.Type.Rook;
+                    SelectedType = Pieces.Type.Rook;
+                    break;
+                default:
                     break;
             }
-            this.CanClose = true;
-            this.Close();
+            CanClose = true;
+            Close();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            e.Cancel = !this.CanClose;
+            e.Cancel = !CanClose;
         }
     }
 }

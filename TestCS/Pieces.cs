@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BoardNS;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,24 +20,24 @@ namespace Pieces
         public static bool operator == (Coordinates a, Coordinates b) => a.X == b.X && a.Y == b.Y;
         public static bool operator != (Coordinates a, Coordinates b) => a.X != b.X || a.Y != b.Y;
 
-        public readonly static Coordinates UP = new(0, 1);
-        public readonly static Coordinates DOWN = new(0, -1);
-        public readonly static Coordinates LEFT = new(-1, 0);
-        public readonly static Coordinates RIGHT = new(1, 0);
+        public static readonly Coordinates UP = new(0, -1);
+        public static readonly Coordinates DOWN = new(0, 1);
+        public static readonly Coordinates LEFT = new(-1, 0);
+        public static readonly Coordinates RIGHT = new(1, 0);
 
-        public readonly static Coordinates UPLEFT = new(-1, 1);
-        public readonly static Coordinates UPRIGHT = new(1, 1);
-        public readonly static Coordinates DOWNLEFT = new(-1, -1);
-        public readonly static Coordinates DOWNRIGHT = new(1, -1);
+        public static readonly Coordinates UPLEFT = new(-1, -1);
+        public static readonly Coordinates UPRIGHT = new(1, -1);
+        public static readonly Coordinates DOWNLEFT = new(-1, 1);
+        public static readonly Coordinates DOWNRIGHT = new(1, 1);
 
-        public readonly static Coordinates KUPLEFT = new(-1, 2);
-        public readonly static Coordinates KUPRIGHT = new(1, 2);
-        public readonly static Coordinates KDOWNLEFT = new(-1, -2);
-        public readonly static Coordinates KDOWNRIGHT = new(1, -2);
-        public readonly static Coordinates KLEFTUP = new(-2, 1);
-        public readonly static Coordinates KLEFTDOWN = new(-2, -1);
-        public readonly static Coordinates KRIGHTUP = new(2, 1);
-        public readonly static Coordinates KRIGHTDOWN = new(2, -1);
+        public static readonly Coordinates KUPLEFT = new(-1, -2);
+        public static readonly Coordinates KUPRIGHT = new(1, -2);
+        public static readonly Coordinates KDOWNLEFT = new(-1, 2);
+        public static readonly Coordinates KDOWNRIGHT = new(1, 2);
+        public static readonly Coordinates KLEFTUP = new(-2, -1);
+        public static readonly Coordinates KLEFTDOWN = new(-2, 1);
+        public static readonly Coordinates KRIGHTUP = new(2, -1);
+        public static readonly Coordinates KRIGHTDOWN = new(2, 1);
 
         public int X { get; set; }
         public int Y { get; set; }
@@ -48,7 +49,7 @@ namespace Pieces
 
         public bool IsValid()
         {
-            return X > -1 && X < 8 && Y > -1 && Y < 8;  
+            return X > -1 && X < 8 && Y > -1 && Y < 8;
         }
 
         public override bool Equals(object obj)
@@ -103,13 +104,13 @@ namespace Pieces
 
         public Piece(Coordinates coords, Color color)
         {
-            this.Coords = coords;
-            this.Color = color;
+            Coords = coords;
+            Color = color;
         }
 
         protected void SetImage()
         {
-            this.Image.Source = new BitmapImage(new Uri(@$"Images/{this.Type}{this.Color}.png", UriKind.Relative));
+            Image.Source = new BitmapImage(new Uri(@$"Images/{Type}{Color}.png", UriKind.Relative));
         }
 
         public List<Coordinates> GetValidMoves()
@@ -170,117 +171,122 @@ namespace Pieces
             List<Coordinates> result = new();
             if (!PawnMove) return result;
 
-            if (IsFirstMove) this.Range++;
+            if (IsFirstMove) Range++;
             if (Color == Color.White)
             {
-                CheckStep(result, Coordinates.DOWN, false);
-                if (IsFirstMove) this.Range--;
-                CheckStep(result, Coordinates.DOWNLEFT, true, true);
-                CheckStep(result, Coordinates.DOWNRIGHT, true, true);
-            } else
-            {
                 CheckStep(result, Coordinates.UP, false);
-                if (IsFirstMove) this.Range--;
+                if (IsFirstMove) Range--;
                 CheckStep(result, Coordinates.UPLEFT, true, true);
                 CheckStep(result, Coordinates.UPRIGHT, true, true);
+            } else
+            {
+                CheckStep(result, Coordinates.DOWN, false);
+                if (IsFirstMove) Range--;
+                CheckStep(result, Coordinates.DOWNLEFT, true, true);
+                CheckStep(result, Coordinates.DOWNRIGHT, true, true);
             }
 
 
             return result;
         }
 
-        public void CheckStep(List<Coordinates> result, Coordinates step, bool canEat = true, bool needsEnemy = false)
+        private void CheckStep(List<Coordinates> result, Coordinates step, bool canEat = true, bool needsEnemy = false)
         {
-            for (int i = 1; i <= this.Range; i++)
+            for (int i = 1; i <= Range; i++)
             {
-                Coordinates move = this.Coords + (step * i);
+                Coordinates move = Coords + (step * i);
                 if (!move.IsValid() || IsObstructed(move)) return;
                 if ((needsEnemy && HasEnemy(move)) || (!needsEnemy && HasEnemy(move) && canEat) || (!needsEnemy && !HasEnemy(move))) result.Add(move);
                 if (HasEnemy(move)) return;
             }
         }
 
-        public bool IsObstructed(Coordinates space)
+        private bool CheckForCheckMate()
+        {
+            return false;
+        }
+
+        private bool IsObstructed(Coordinates space)
         {
             if (BoardNS.Board.PieceGrid[space.X, space.Y] == 0) return false;
             if (HasEnemy(space)) return false;
             return true;
         }
 
-        public bool HasEnemy(Coordinates space)
+        private bool HasEnemy(Coordinates space)
         {
             Piece? enemy = BoardNS.Board.PieceList.Find(piece => piece.Coords == space);
-            if (enemy != null && enemy.Color != Color) return true;
+            if (BoardNS.Board.PieceGrid[space.X, space.Y] == 1 && enemy != null && enemy.Color != Color) return true;
             return false;
         }
 
     }
 
-    class King : Piece
+    public class King : Piece
     {
         public King(Coordinates coords, Color color) : base(coords, color)
         {
-            this.Type = Type.King;
-            this.HorizontalMove = true;
-            this.DiagonalMove = true;
-            this.Range = 1;
-            this.SetImage();
+            Type = Type.King;
+            HorizontalMove = true;
+            DiagonalMove = true;
+            Range = 1;
+            SetImage();
         }
     }
 
-    class Queen : Piece
+    public class Queen : Piece
     {
         public Queen(Coordinates coords, Color color) : base(coords, color)
         {
-            this.Type = Type.Queen;
-            this.HorizontalMove = true;
-            this.DiagonalMove = true;
-            this.Range = 7;
-            this.SetImage();
+            Type = Type.Queen;
+            HorizontalMove = true;
+            DiagonalMove = true;
+            Range = 7;
+            SetImage();
         }
     }
 
-    class Knight : Piece
+    public class Knight : Piece
     {
         public Knight(Coordinates coords, Color color) : base(coords, color)
         {
-            this.Type = Type.Knight;
-            this.KnightMove = true;
-            this.Range = 1;
-            this.SetImage();
+            Type = Type.Knight;
+            KnightMove = true;
+            Range = 1;
+            SetImage();
         }
     }
 
-    class Bishop : Piece
+    public class Bishop : Piece
     {
         public Bishop(Coordinates coords, Color color) : base(coords, color)
         {
-            this.Type = Type.Bishop;
-            this.DiagonalMove = true;
-            this.Range = 7;
-            this.SetImage();
+            Type = Type.Bishop;
+            DiagonalMove = true;
+            Range = 7;
+            SetImage();
         }
     }
 
-    class Rook : Piece
+    public class Rook : Piece
     {
         public Rook(Coordinates coords, Color color) : base(coords, color)
         {
-            this.Type = Type.Rook;
-            this.HorizontalMove = true;
-            this.Range = 7;
-            this.SetImage();
+            Type = Type.Rook;
+            HorizontalMove = true;
+            Range = 7;
+            SetImage();
         }
     }
 
-    class Pawn : Piece
+    public class Pawn : Piece
     {
         public Pawn(Coordinates coords, Color color) : base(coords, color)
         {
-            this.Type = Type.Pawn;
-            this.PawnMove = true;
-            this.Range = 1;
-            this.SetImage();
+            Type = Type.Pawn;
+            PawnMove = true;
+            Range = 1;
+            SetImage();
         }
     }
 }

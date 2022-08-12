@@ -15,6 +15,8 @@ using System.Windows.Shapes;
 using Pieces;
 using BoardNS;
 using Color = Pieces.Color;
+using Type = Pieces.Type;
+using System.Diagnostics;
 
 namespace TestCS
 {
@@ -68,7 +70,7 @@ namespace TestCS
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 8; j++)
                 {
-                    Coordinates location = new(i, 7 - j);
+                    Coordinates location = new(i, j);
                     StackPanel stackPnl = new()
                     {
                         Orientation = Orientation.Horizontal,
@@ -119,29 +121,52 @@ namespace TestCS
             Piece? piece = Board.PieceList.Find(piece => piece.Coords == button.Coords);
             if (piece != null)
             {
-                if (piece.Color != this.Turn) return;
+                if (piece.Color != Turn) return;
                 button.IsMoving = true;
-                piece.GetValidMoves().ForEach(move => ButtonList.FindAll(button => button.Coords == move).ForEach(square => square.SetPossibleMove()));
+                CheckForCheck(piece).ForEach(move => ButtonList.FindAll(button => button.Coords == move).ForEach(square => square.SetPossibleMove()));
             }
         }
 
-        void RemovePosibleMoves()
+        private List<Coordinates> CheckForCheck(Piece piece)
+        {
+            List<Coordinates> validMoveList = new();
+            piece.GetValidMoves().ForEach(move =>
+            {
+                int[,] tempGrid = (int[,])Board.PieceGrid.Clone();
+                Board.PieceGrid[piece.Coords.X, piece.Coords.Y] = 0;
+                Board.PieceGrid[move.X, move.Y] = 1;
+
+                bool isCheck = false;
+                List<Piece> enemyPieces = Board.PieceList.FindAll(enemyPiece => enemyPiece.Color != piece.Color);
+                enemyPieces.ForEach(enemyPiece => enemyPiece.GetValidMoves().ForEach(enemyMove =>
+                    {
+                        Piece? piece = Board.PieceList.Find(king => king.Type == Type.King && king.Color != enemyPiece.Color);
+                        isCheck = piece != null && piece.Coords == enemyMove || isCheck;
+                    }
+                ));
+                Board.PieceGrid = (int[,])tempGrid.Clone();
+                if (!isCheck) validMoveList.Add(move);
+            });
+            return validMoveList;
+        }
+
+        private void RemovePosibleMoves()
         {
             ButtonList.FindAll(sqaure => sqaure.CanMoveHere).ForEach(square => square.RemovePossibleMove());
         }
 
-        void SetNotMoving()
+        private void SetNotMoving()
         {
             TableButton? button = ButtonList.Find(button => button.IsMoving);
             if (button != null) button.IsMoving = false;
         }
 
-        void SetNotMoving(TableButton button)
+        private void SetNotMoving(TableButton button)
         {
             button.IsMoving = false;
         }
 
-        void MovePiece(TableButton target)
+        private void MovePiece(TableButton target)
         {
             TableButton? origin = ButtonList.Find(button => button.IsMoving);
             if (origin == null) throw new NullReferenceException();
@@ -166,25 +191,24 @@ namespace TestCS
 
             Turn = Turn == Color.White ? Color.Black : Color.White;
             CheckPawnPromotion(piece, target);
-            CheckMate();
         }
 
-        void CheckPawnPromotion(Piece piece, TableButton target)
+        private void CheckPawnPromotion(Piece piece, TableButton target)
         {
-            if (!(piece.Type == Pieces.Type.Pawn && (target.Coords.Y == 7 || target.Coords.Y == 0))) return;
+            if (!(piece.Type == Type.Pawn && (target.Coords.Y == 7 || target.Coords.Y == 0))) return;
             Board.PieceList.Remove(piece);
-            switch(new Window1().ShowCustomDialog())
+            switch(new SelectionWindow().ShowCustomDialog())
             {
-                case Pieces.Type.Queen:
+                case Type.Queen:
                     piece = new Queen(piece.Coords, piece.Color);
                     break;
-                case Pieces.Type.Bishop:
+                case Type.Bishop:
                     piece = new Bishop(piece.Coords, piece.Color);
                     break;
-                case Pieces.Type.Knight:
+                case Type.Knight:
                     piece = new Knight(piece.Coords, piece.Color);
                     break;
-                case Pieces.Type.Rook:
+                case Type.Rook:
                     piece = new Rook(piece.Coords, piece.Color);
                     break;
             }
@@ -192,16 +216,6 @@ namespace TestCS
 
             ((StackPanel)target.Content).Children.RemoveAt(0);
             ((StackPanel)target.Content).Children.Add(piece.Image);
-        }
-
-        void CheckMate()
-        {
-
-        }
-
-        void CheckCheckMate()
-        {
-
         }
     }
 }
