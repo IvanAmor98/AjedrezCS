@@ -201,11 +201,6 @@ namespace Pieces
             }
         }
 
-        private bool CheckForCheckMate()
-        {
-            return false;
-        }
-
         private bool IsObstructed(Coordinates space)
         {
             if (BoardNS.Board.PieceGrid[space.X, space.Y] == 0) return false;

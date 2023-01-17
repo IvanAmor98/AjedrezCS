@@ -97,7 +97,6 @@ namespace TestCS
         void OnButtonClick(object sender, RoutedEventArgs e)
         {
             TableButton button = (TableButton)sender;
-
             
             if (button.IsMoving)
             {
@@ -105,7 +104,6 @@ namespace TestCS
                 RemovePosibleMoves();
                 return;
             }
-
             
             if (button.CanMoveHere)
             {
@@ -130,11 +128,13 @@ namespace TestCS
         private List<Coordinates> CheckForCheck(Piece piece)
         {
             List<Coordinates> validMoveList = new();
-            piece.GetValidMoves().ForEach(move =>
+            List<Coordinates> posibleMoveList = piece.GetValidMoves();
+
+            posibleMoveList.ForEach(move =>
             {
-                int[,] tempGrid = (int[,])Board.PieceGrid.Clone();
-                Board.PieceGrid[piece.Coords.X, piece.Coords.Y] = 0;
-                Board.PieceGrid[move.X, move.Y] = 1;
+                Coordinates pieceCoords = piece.Coords;
+                UpdatePieceGrid(pieceCoords, move);
+                piece.Coords = move;
 
                 bool isCheck = false;
                 List<Piece> enemyPieces = Board.PieceList.FindAll(enemyPiece => enemyPiece.Color != piece.Color);
@@ -144,16 +144,14 @@ namespace TestCS
                         isCheck = piece != null && piece.Coords == enemyMove || isCheck;
                     }
                 ));
-                Board.PieceGrid = (int[,])tempGrid.Clone();
+                UpdatePieceGrid(move, pieceCoords);
+                piece.Coords = pieceCoords;
                 if (!isCheck) validMoveList.Add(move);
             });
             return validMoveList;
         }
 
-        private void RemovePosibleMoves()
-        {
-            ButtonList.FindAll(sqaure => sqaure.CanMoveHere).ForEach(square => square.RemovePossibleMove());
-        }
+        private void RemovePosibleMoves() => ButtonList.FindAll(sqaure => sqaure.CanMoveHere).ForEach(square => square.RemovePossibleMove());
 
         private void SetNotMoving()
         {
@@ -161,10 +159,7 @@ namespace TestCS
             if (button != null) button.IsMoving = false;
         }
 
-        private void SetNotMoving(TableButton button)
-        {
-            button.IsMoving = false;
-        }
+        private void SetNotMoving(TableButton button) => button.IsMoving = false;
 
         private void MovePiece(TableButton target)
         {
@@ -186,11 +181,16 @@ namespace TestCS
 
             piece.Coords = target.Coords;
             piece.IsFirstMove = false;
-            Board.PieceGrid[origin.Coords.X, origin.Coords.Y] = 0;
-            Board.PieceGrid[target.Coords.X, target.Coords.Y] = 1;
+            UpdatePieceGrid(origin.Coords, target.Coords);
 
             Turn = Turn == Color.White ? Color.Black : Color.White;
             CheckPawnPromotion(piece, target);
+        }
+
+        private void UpdatePieceGrid(Coordinates origin, Coordinates target)
+        {
+            Board.PieceGrid[origin.X, origin.Y] = 0;
+            Board.PieceGrid[target.X, target.Y] = 1;
         }
 
         private void CheckPawnPromotion(Piece piece, TableButton target)
